@@ -4,12 +4,12 @@
   "version": "0.8.0",
   "items": [
     {
-      "url": "Signal Assist Dev/https://www.ceve.io/s/signalAssist.html",
+      "url": "Signal Assist Dev/https://ceve-io.github.io/signal-assist/signalAssist.html",
       "path": "DriveAppLink/",
       "menuName": {
         "en": "Signal Assist Dev"
       },
-      "icon": "https://www.ceve.io/s/icon.svg"
+      "icon": "https://ceve-io.github.io/signal-assist/images/icon.svg"
     }
   ]
 }
