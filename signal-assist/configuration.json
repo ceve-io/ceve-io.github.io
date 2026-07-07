@@ -1,0 +1,15 @@
+{
+  "name": "Signal Assist Dev",
+  "supportEmail": "david@ceve.io",
+  "version": "0.8.0",
+  "items": [
+    {
+      "url": "Signal Assist Dev/https://www.ceve.io/s/signalAssist.html",
+      "path": "DriveAppLink/",
+      "menuName": {
+        "en": "Signal Assist Dev"
+      },
+      "icon": "https://www.ceve.io/s/icon.svg"
+    }
+  ]
+}
