@@ -1,45 +1,63 @@
 function androidGeolocationInit() {
-    let positionSuccessCallback = null;
+    let callbackIdCounter = 1;
+    const activeCallbacks = {};
 
     window.AndroidGeolocation.onmessage = function(event) {
         const message = event.data;
-        console.log("AndroidGeolocation message:", message);
         const reply = JSON.parse(message);
-        switch (reply.id) {
-            case "getCurrentPosition":
-                if (reply.result) {
-                    const position = reply.result;
-                    positionSuccessCallback(position);
-                } else {
-                    console.log("AndroidGeoLocation error:", reply.error);
-                }
-                break;
-            default:
-                console.log("AndroidGeoLocation unrecognized method:", reply.method);
+        const callback = activeCallbacks[reply.id];
+        if (!callback) return;
+
+        if (reply.result) {
+            const position = reply.result;
+            callback.success(position);
+        } else {
+            const positionError = {
+                code: message.code,
+                message: message.message || "Unknown native location error"
+            };
+            callback.error(positionError)
+        }
+
+        if (!callback.isWatch) {
+            delete activeCallbacks[id];
         }
     }
 
     const androidGeolocation = {
         getCurrentPosition: (successCallback, errorCallback, options) => {
+            const id = callbackIdCounter++;
+            activeCallbacks[id] = { success: successCallback, error: errorCallback };
+
             const payload = {
                 method: "getCurrentPosition",
-                params: options
+                params: options || {},
+                id: id
             };
             window.AndroidGeolocation.postMessage(JSON.stringify(payload));
-            positionSuccessCallback = successCallback;
         },
 
         watchPosition: (successCallback, errorCallback, options) => {
-            const fetchLocation = () => {
-                androidGeolocation.getCurrentPosition(successCallback, errorCallback, options);
+            const id = callbackIdCounter++;
+            activeCallbacks[id] = { success: successCallback, error: errorCallback, isWatch: true };
+
+            const payload = {
+                method: "watchPosition",
+                params: options || {},
+                id: id
             };
-            fetchLocation();
-            const intervalId = setInterval(fetchLocation, 1000);
-            return intervalId;
+            window.AndroidGeolocation.postMessage(JSON.stringify(payload));
+            return id;
         },
 
         clearWatch: (watchId) => {
-            clearInterval(watchId);
+            delete activeCallbacks[watchId];
+            const payload = {
+                method: "clearWatch",
+                params: {},
+                id: id
+            };
+            window.AndroidGeolocation.postMessage(JSON.stringify(payload));
         }
     };
 
@@ -96,24 +114,4 @@ function androidSpeechSynthesisInit() {
         configurable: true,
         writable: true
     });
-}
-
-
-// Main
-if (window.AndroidSpeechSynthesis) {
-    console.log("Initializing AndroidSpeechSynthesis");
-    androidSpeechSynthesisInit();
-    setTimeout(() => {
-        const utterance = new SpeechSynthesisUtterance("Android speech");
-        window.speechSynthesis.speak(utterance);
-    }, 1000);
-} else {
-    console.log("No AndroidSpeechSynthesis")
-}
-
-if (window.AndroidGeolocation) {
-    console.log("Initializing AndroidGeolocation");
-    androidGeolocationInit()
-} else {
-    console.log("No AndroidGeolocation")
 }
